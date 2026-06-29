@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lexicon — A community feed kept honest by its own rules</title>
+<meta name="description" content="An AI-moderated community feed on GenLayer. One public code of conduct; the contract reads every post against it and a validator set agrees to publish or reject, with a recorded reason. No silent deletions." />
+<link rel="stylesheet" href="./styles.css?v=6">
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top"><span class="logo-mark">L</span> Lexicon</a>
+    <div class="nav-end">
+      <a href="#how" class="nav-link">How it works</a>
+      <a href="#feed" class="nav-link">The feed</a>
+      <span id="walletslot"><button class="btn ghost sm" id="connectBtn">Connect</button></span>
+      <button class="btn primary sm" id="navPostBtn">Post</button>
+    </div>
+  </div>
+</nav>
+
+<!-- MASTHEAD -->
+<header class="masthead" id="top">
+  <canvas id="inkCanvas"></canvas>
+  <div class="mast-inner">
+    <span class="mast-kicker">An AI-moderated community feed · GenLayer</span>
+    <h1>A feed kept honest<br>by its own rules.</h1>
+    <p class="mast-sub">One community writes a public code of conduct. Anyone can post. Instead of a moderator deleting on a whim, the contract reads every post against the code and a validator set agrees whether to publish it — with the reason recorded on-chain.</p>
+    <div class="mast-cta">
+      <button class="btn primary lg" id="heroPostBtn">Post to the feed</button>
+      <a class="btn quiet lg" href="#how">How moderation works <i class="ph-bold ph-arrow-right"></i></a>
+    </div>
+    <div class="mast-meta"><span><i class="ph-bold ph-users-three"></i> Public code of conduct</span><span><i class="ph-bold ph-scales"></i> Judged by consensus</span><span><i class="ph-bold ph-eye"></i> No silent deletions</span></div>
+  </div>
+</header>
+
+<div class="rule-full"></div>
+
+<main class="reading">
+
+  <!-- MANIFESTO -->
+  <section class="manifesto">
+    <p class="lede-drop">Moderation is usually a dictator or a mob.</p>
+    <p>On one side, a single moderator deletes posts on a whim and answers to no one. On the other, a brigade decides what stays by sheer volume. Either way the rules are invisible and the decisions are unaccountable.</p>
+    <p>Lexicon makes the rulebook public and the judge impartial. There is one written <strong>code of conduct</strong>. Every post is read against it, and a validator set must independently agree on the verdict before anything is published or held back — the <a href="https://docs.genlayer.com/developers/intelligent-contracts/equivalence-principle" target="_blank" rel="noopener">Equivalence Principle</a>.</p>
+  </section>
+
+  <!-- HOW: editorial numbered steps -->
+  <section class="how" id="how">
+    <h2 class="sec-title">How a post becomes published</h2>
+    <ol class="steps">
+      <li><span class="st-n">1</span><div><h3>Post</h3><p>Write your post and submit it to the feed. It enters as <em>pending</em> — visible to no one until it has been judged against the code.</p></div></li>
+      <li><span class="st-n">2</span><div><h3>Moderate</h3><p>The contract reads your post against the code of conduct, and a validator set independently agrees whether it complies. A real model does the reading.</p></div></li>
+      <li><span class="st-n">3</span><div><h3>Publish</h3><p>Compliant posts are published to the feed. Non-compliant ones are held back with a written reason. Either outcome is permanent and on-chain.</p></div></li>
+    </ol>
+  </section>
+
+  <!-- CODE OF CONDUCT -->
+  <section class="coc">
+    <div class="coc-head"><i class="ph-bold ph-scroll"></i> The code of conduct</div>
+    <blockquote id="cocText">Reading the chain…</blockquote>
+    <div class="coc-foot">Every verdict on this feed is measured against these words — and only these.</div>
+  </section>
+
+  <!-- FEED -->
+  <section class="feed" id="feed">
+    <div class="feed-head">
+      <h2 class="sec-title">The feed</h2>
+      <div class="feed-stats">
+        <span><b id="stTotal">0</b> posts</span>
+        <span><b id="stPub">0</b> published</span>
+        <span><b id="stRej">0</b> rejected</span>
+        <button class="btn quiet sm" id="refreshBtn"><i class="ph-bold ph-arrows-clockwise"></i> Sync</button>
+      </div>
+    </div>
+    <div class="posts" id="postList"><div class="p-empty">Reading the chain…</div></div>
+  </section>
+
+</main>
+
+<!-- WHY -->
+<section class="why">
+  <div class="why-inner">
+    <h2 class="sec-title center">Why it works this way</h2>
+    <div class="why-grid">
+      <div class="why-item"><i class="ph-bold ph-scroll"></i><h4>One public rulebook</h4><p>The code is written once and visible to all. Everyone is measured against the same words — no shifting goalposts.</p></div>
+      <div class="why-item"><i class="ph-bold ph-chat-text"></i><h4>Every verdict is reasoned</h4><p>A rejected post carries a written reason citing the code. No removals without an explanation, ever.</p></div>
+      <div class="why-item"><i class="ph-bold ph-eye"></i><h4>No silent deletions</h4><p>Pending, published, rejected — every state and reason lives on-chain. Nothing disappears into a drawer.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA subscribe-style -->
+<section class="subscribe">
+  <div class="sub-box">
+    <h2>Add your voice to the feed</h2>
+    <p>Write something and submit it. The code of conduct — not a moderator — decides whether it stays.</p>
+    <button class="btn primary lg" id="ctaPostBtn">Post to the feed</button>
+    <span class="sub-fine">One transaction on GenLayer studionet · no account needed</span>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <a class="brand" href="#top"><span class="logo-mark">L</span> Lexicon</a>
+    <div class="foot-links">
+      <a href="#how">How it works</a>
+      <a href="#feed">The feed</a>
+      <a href="https://docs.genlayer.com/" target="_blank" rel="noopener">GenLayer docs</a>
+      <a id="contractLink" href="https://explorer-studio.genlayer.com/contracts/0xBDa72fA79808d9221bA33D7223E9d1a5187E60A7" target="_blank" rel="noopener">Contract 0xBDa7...60A7 -></a>
+    </div>
+    <span class="foot-net"><span class="net-dot"></span>studionet · live</span>
+  </div>
+  <div class="foot-base">Lexicon · an AI-moderated community feed on GenLayer studionet</div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-h"><h3 id="drawerTitle">Post to the feed</h3><button class="icon-btn" id="closeDrawer" aria-label="Close"><i class="ph-bold ph-x"></i></button></div>
+  <div class="drawer-b" id="drawerBody"></div>
+</aside>
+<div id="log"></div>
+<script type="module" src="./app.js?v=21"></script>
+</body>
+</html>
