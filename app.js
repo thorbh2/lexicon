@@ -98,7 +98,7 @@ async function doCreate() {
   const body = $("nBody").value.trim();
   if (!body) return toast("Write something first.", "err");
   const btn = $("createBtn"); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> submitting';
-  try { await ensureWallet(); await write(CONTRACT, "submit_post", [body]); toast("Post submitted — pending moderation.", "ok"); closeDrawer(); await load(); }
+  try { await ensureWallet(); await write(CONTRACT, "submit_post", [body]); toast("Post submitted - pending moderation.", "ok"); closeDrawer(); await load(); }
   catch (e) { toast(fmtErr(e), "err"); btn.disabled = false; btn.innerHTML = "Submit post"; }
 }
 async function doModerate(id) {
@@ -130,7 +130,7 @@ load();
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   function resize() { const w = canvas.clientWidth, h = canvas.clientHeight || 400; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 
-  // drifting motes of "ink" — orange + warm grey, very soft
+  // drifting motes of "ink" - orange + warm grey, very soft
   const N = 160, pos = new Float32Array(N * 3), col = new Float32Array(N * 3), spd = [];
   const c1 = new THREE.Color("#ff6719"), c2 = new THREE.Color("#d9c7b8");
   for (let i = 0; i < N; i++) {
