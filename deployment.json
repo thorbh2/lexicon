@@ -1,0 +1,30 @@
+{
+  "project": "08-lexicon",
+  "name": "LexiconRegistry",
+  "network": "studionet",
+  "chainId": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "explorer": "https://explorer-studio.genlayer.com",
+  "contractAddress": "0xBDa72fA79808d9221bA33D7223E9d1a5187E60A7",
+  "deployTxHash": "0xa2fd562c77426f5c0049a35df003520035a322787f7ac21447e24b0c768226d2",
+  "contractExplorer": "https://explorer-studio.genlayer.com/contracts/0xBDa72fA79808d9221bA33D7223E9d1a5187E60A7",
+  "deployer": "0xD63B44f1248AC167B52ED3D7CA7670d3Ea280197",
+  "deployedAt": "2026-06-22T23:15:32.159Z",
+  "statusName": 7,
+  "smoke": {
+    "set_code": "0xcc01602b5737b600f91f1af5e7807b5830addb15800d9a63e837c3c7a9afc2be",
+    "create_entry": "0x0cb2c2b18a3242ca71209a836bb2f9ba6b88dd382167100e74228912ef81fe96",
+    "add_citation": "0x1411d728211d8ab9c3e1bd1690f8ae280ee7e65a50cc89b7835dfef04975dde9",
+    "add_revision": "0xf34fec7df41d85541c0ab12579204d1f20875075e52ac0d9f130763ac302062c",
+    "open_review": "0x2f1079f48c0f951fc1d3fbaeef45cec50f07aa2c1b11588ce46d1ea00d910254",
+    "moderate_with_genlayer": "0x632e686176d4a1ea0349d6db3bc8cb82f0b2d490fba9dde546357096e8fad50e",
+    "open_challenge_window": "0xeb114c24beafe8212756a8ca22e7088d4856ccbadd79ad4c4e2e18256c05e7aa",
+    "submit_challenge": "0xc2e091b0bc63639bf4511ce965ebd849ad625fd5ead4ae7dace7cd12c7226889",
+    "resolve_challenge": "0xec73eb74f7cab0ea32427eb8a80822a983996aec25440c28c4391bf5ce43683a",
+    "finalize_entry": "0x2760d3f17b0833340aca8daee2d461f9fd41367f6edb0f0c0d157ab3734dc814",
+    "archive_entry": "0x0a319c90232f5d0b39b91b83378f58e2a8b150dc0a241434f74636a6c3a15c98",
+    "recalculate_reputation": "0x3e055cc9302ae1e3cd18b19d30bae82581fb5af1b6a7fdd26a7613e02cf3b7d9",
+    "entryId": "0",
+    "challengeId": "0"
+  }
+}
