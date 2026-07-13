@@ -169,9 +169,11 @@ class LexiconRegistry(gl.Contract):
     recent_ids: DynArray[str]
     code: str
     clock: u256
+    admin: str
 
     def __init__(self) -> None:
         self.clock = 0
+        self.admin = gl.message.sender_address.as_hex
         self.code = "Entries must be accurate, on-topic, civil, and supported by credible public sources. No spam, no harassment, no unverifiable claims."
 
     def _ilist(self, tree: TreeMap[str, str], key: str) -> list:
@@ -218,6 +220,14 @@ class LexiconRegistry(gl.Contract):
     def _require_owner(self, e: dict, actor: str) -> None:
         if e["author"].lower() != actor.lower():
             raise Exception("unauthorized")
+
+    def _require_editor(self, e: dict, actor: str) -> None:
+        if e["author"].lower() != actor.lower() and self.admin.lower() != actor.lower():
+            raise Exception("only_author_or_admin")
+
+    def _require_admin(self, actor: str) -> None:
+        if self.admin.lower() != actor.lower():
+            raise Exception("only_admin")
 
     def _require_mutable(self, e: dict) -> None:
         if e["status"] in ("FINALIZED", "ARCHIVED"):
@@ -298,6 +308,7 @@ class LexiconRegistry(gl.Contract):
     def set_code(self, code: str) -> str:
         self.clock += 1
         actor = gl.message.sender_address.as_hex
+        self._require_admin(actor)
         c = _s(code, 2000)
         if c == "":
             raise Exception("empty_code")
@@ -343,6 +354,7 @@ class LexiconRegistry(gl.Contract):
         actor = gl.message.sender_address.as_hex
         e = self._load(entry_id)
         self._require_mutable(e)
+        self._require_editor(e, actor)
         if e["status"] not in ("DRAFT", "OPEN", "UNDER_REVIEW", "REVIEWED"):
             raise Exception("invalid_transition")
         cu = _clean_url(url)
@@ -362,6 +374,7 @@ class LexiconRegistry(gl.Contract):
         actor = gl.message.sender_address.as_hex
         e = self._load(entry_id)
         self._require_mutable(e)
+        self._require_editor(e, actor)
         body = _s(note, 400)
         if body == "":
             raise Exception("empty_note")
@@ -378,6 +391,7 @@ class LexiconRegistry(gl.Contract):
         actor = gl.message.sender_address.as_hex
         e = self._load(entry_id)
         self._require_mutable(e)
+        self._require_editor(e, actor)
         if e["status"] not in ("OPEN", "DRAFT", "REVIEWED"):
             raise Exception("invalid_transition")
         before = e["status"]
@@ -470,6 +484,7 @@ class LexiconRegistry(gl.Contract):
     def resolve_challenge_with_genlayer(self, entry_id: str, challenge_id: str) -> str:
         self.clock += 1
         actor = gl.message.sender_address.as_hex
+        self._require_admin(actor)
         e = self._load(entry_id)
         if e["status"] != "CHALLENGE_WINDOW":
             raise Exception("invalid_transition")
@@ -502,6 +517,8 @@ class LexiconRegistry(gl.Contract):
         e["confidenceBps"] = max(0, min(10000, int(e["confidenceBps"]) + int(res["confidenceDeltaBps"])))
         if res["ruling"] in ("accepted", "partially_accepted"):
             self._rep_bump(ch["challenger"], 40, "successfulChallenges")
+            e["verdict"] = "rejected" if res["ruling"] == "accepted" else "needs_revision"
+            e["reason"] = "Editorial verdict revised after an accepted challenge. " + res["reason"][:220]
         elif res["ruling"] == "rejected":
             self._rep_bump(ch["challenger"], -30, "failedChallenges")
         self._add_audit(e, actor, "resolve_challenge_with_genlayer", res["reason"][:120], "CHALLENGE_WINDOW", "CHALLENGE_WINDOW")
@@ -532,6 +549,7 @@ class LexiconRegistry(gl.Contract):
     def resolve_appeal_with_genlayer(self, entry_id: str, appeal_id: str) -> str:
         self.clock += 1
         actor = gl.message.sender_address.as_hex
+        self._require_admin(actor)
         e = self._load(entry_id)
         if e["status"] != "APPEALED":
             raise Exception("invalid_transition")
@@ -564,6 +582,8 @@ class LexiconRegistry(gl.Contract):
         e["confidenceBps"] = max(0, min(10000, int(e["confidenceBps"]) + int(res["confidenceDeltaBps"])))
         if res["ruling"] in ("granted", "partially_granted"):
             self._rep_bump(ap["appellant"], 30, "")
+            e["verdict"] = "published" if res["ruling"] == "granted" else "needs_revision"
+            e["reason"] = "Editorial verdict revised after a granted appeal. " + res["reason"][:220]
         before = e["status"]
         self._set_status(e, "CHALLENGE_WINDOW")
         self._add_audit(e, actor, "resolve_appeal_with_genlayer", res["reason"][:120], before, "CHALLENGE_WINDOW")
@@ -580,6 +600,9 @@ class LexiconRegistry(gl.Contract):
             raise Exception("invalid_transition")
         if e["verdict"] == "unreviewed":
             raise Exception("not_reviewed")
+        for cid in e["challengeIds"]:
+            if self._load_challenge(cid)["status"] == "open":
+                raise Exception("open_challenge_blocks_finalize")
         for aid in e["appealIds"]:
             try:
                 if self._load_appeal(aid)["status"] == "open":

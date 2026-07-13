@@ -10,9 +10,13 @@ This repository is a public proof package: it includes the product UI, the deplo
 | --- | --- |
 | App | https://lexicon-zeta-woad.vercel.app |
 | GitHub | https://github.com/thorbh2/lexicon |
-| Contract | https://explorer-studio.genlayer.com/contracts/0xBDa72fA79808d9221bA33D7223E9d1a5187E60A7 |
-| Deploy tx | https://explorer-studio.genlayer.com/tx/0xa2fd562c77426f5c0049a35df003520035a322787f7ac21447e24b0c768226d2 |
-| Vercel inspect | https://vercel.com/aspros-projects-07dbbeb8/lexicon/4G2LhEnrh8rtR6CzVWtAusHecHin |
+| Contract | https://explorer-studio.genlayer.com/contracts/0x190BFff590482DE6248e148aD0A2bE4BE4Cb0eBE |
+| Deploy tx | https://explorer-studio.genlayer.com/tx/0x1190a2f41df7bf634aa8f297884d23c5a9348c84336673fd2e8fcac22c7ce85c |
+| Vercel inspect | https://vercel.com/aspros-projects-07dbbeb8/lexicon/6dVdiYjnFakTRdcXn8NHTWRub9An |
+
+## Editorial Controls
+
+The registry's editorial code is administrator-controlled, while citations, revisions and review requests are limited to the entry author or administrator. Every citation and dispute action is exposed by the client. Finalization refuses entries with an open challenge or appeal, and accepted decisions rewrite the settled publication verdict rather than leaving a disconnected review record. The source-level checks live in `tests/test_v2_invariants.py`.
 
 ## Why Lexicon Exists
 
@@ -31,7 +35,7 @@ The frontend keeps the original product experience, while the contract adds a re
 | Read methods | 22 |
 | GenLayer features | live web rendering, LLM execution, validator-comparative consensus |
 | Deployment wallet | 0xD63B44f1248AC167B52ED3D7CA7670d3Ea280197 |
-| Contract address | 0xBDa72fA79808d9221bA33D7223E9d1a5187E60A7 |
+| Contract address | 0x190BFff590482DE6248e148aD0A2bE4BE4Cb0eBE |
 
 Architecture note:
 

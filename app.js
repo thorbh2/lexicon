@@ -1,7 +1,7 @@
 import { makeReader, write, connectWallet, activeAccount, balanceOf, short, toGen, GEN, fmtErr }
   from "./shared/genlayer-lite.js";
 
-const CONTRACT = "0xBDa72fA79808d9221bA33D7223E9d1a5187E60A7";
+const CONTRACT = "0x190BFff590482DE6248e148aD0A2bE4BE4Cb0eBE";
 const { read } = makeReader(CONTRACT);
 const PENDING = 0, PUBLISHED = 1, REJECTED = 2;
 const STLABEL = ["Pending", "Published", "Rejected"];
@@ -9,6 +9,8 @@ const STCLS = ["ps-pending", "ps-published", "ps-rejected"];
 let account = null, posts = [], coc = "";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => (s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const asJson = (value) => typeof value === "string" ? JSON.parse(value) : value;
 
 $("contractLink").textContent = "Contract " + short(CONTRACT);
 
@@ -68,44 +70,77 @@ function openNew() {
   $("drawerBody").innerHTML = `
     <div class="coc-mini"><div class="cm-h">Code of conduct</div><blockquote>${esc(coc) || "No code of conduct set yet."}</blockquote></div>
     <label>Your post</label><textarea id="nBody" placeholder="Share something with the community…"></textarea>
-    <div class="hint">It will be read against the code of conduct before it appears on the feed.</div>
+    <label>Primary citation URL</label><input id="nCitation" placeholder="https://source.example/article" />
+    <div class="hint">The citation is stored with the entry and reviewed with the text.</div>
     <button class="btn primary block" id="createBtn"><i class="ph-bold ph-paper-plane-tilt"></i> Submit post</button>`;
   $("createBtn").onclick = doCreate; openDrawer();
 }
 
-function openDetail(id) {
+async function openDetail(id) {
   const p = posts.find((x) => x.id === id); if (!p) return;
   const st = Number(p.status);
-  $("drawerTitle").textContent = "Post #" + id;
+  let entry;
+  try { entry = asJson(await read("get_entry", [String(id)])); }
+  catch (e) { return toast("Could not load the V2 entry: " + fmtErr(e), "err"); }
+  $("drawerTitle").textContent = "Entry #" + id;
   let verdict = "";
   if (st === PUBLISHED) verdict = `<div class="verdict-box vb-ok"><b>Published.</b> ${p.reason ? esc(p.reason) : "Complies with the code of conduct."}</div>`;
   if (st === REJECTED) verdict = `<div class="verdict-box vb-no"><b>Held back.</b> ${p.reason ? esc(p.reason) : "Violates the code of conduct."}</div>`;
-  const actions = st === PENDING
-    ? `<button class="btn primary block" id="modBtn"><i class="ph-bold ph-scales"></i> Run AI moderation</button><div class="hint" style="text-align:center;margin-top:8px">Validators read the post against the code. Calls a real LLM.</div>`
-    : "";
+  const isAuthor = account && entry.author && account.toLowerCase() === entry.author.toLowerCase();
+  let actions = "";
+  if (st === PENDING) actions += `<button class="btn primary block" id="modBtn"><i class="ph-bold ph-scales"></i> Run AI moderation</button>`;
+  if (isAuthor && !["FINALIZED", "ARCHIVED"].includes(entry.status)) actions += `<label>Add citation</label><input id="citationUrl" placeholder="https://source.example"/><input id="citationSummary" placeholder="What this source establishes"/><button class="btn block" id="citationBtn">Add citation on-chain</button>`;
+  if (isAuthor && entry.status === "REVIEWED") actions += `<button class="btn block" id="windowBtn">Open challenge window</button>`;
+  if (entry.status === "CHALLENGE_WINDOW") actions += `<label>Challenge the editorial verdict</label><textarea id="challengeClaim" placeholder="Explain what the review got wrong"></textarea><input id="challengeUrl" placeholder="https://counter-evidence.example"/><button class="btn block" id="challengeBtn">Submit challenge</button><label>Appeal</label><textarea id="appealReason" placeholder="Reason for appeal"></textarea><input id="appealUrl" placeholder="https://appeal-evidence.example"/><button class="btn block" id="appealBtn">File appeal</button>`;
+  if (isAuthor && ["REVIEWED", "CHALLENGE_WINDOW"].includes(entry.status)) actions += `<button class="btn primary block" id="finalizeBtn">Finalize entry</button>`;
   $("drawerBody").innerHTML = `
     <div class="d-post">${esc(p.body)}</div>
     ${verdict}
     <div class="kv"><span class="k">Author</span><span class="v mono">${short(p.author)}</span></div>
-    <div class="kv"><span class="k">Status</span><span class="v">${STLABEL[st]}</span></div>
+    <div class="kv"><span class="k">V2 lifecycle</span><span class="v">${esc(entry.status)}</span></div>
+    <div class="kv"><span class="k">Citations</span><span class="v">${entry.citationIds?.length || 0}</span></div>
     ${p.reason ? `<div class="kv"><span class="k">Reason</span><span class="v">${esc(p.reason)}</span></div>` : ""}
     <div style="margin-top:16px">${actions}</div>`;
   openDrawer();
-  if (st === PENDING) $("modBtn").onclick = () => doModerate(id);
+  if ($("modBtn")) $("modBtn").onclick = () => doModerate(id);
+  if ($("citationBtn")) $("citationBtn").onclick = () => doAddCitation(id);
+  if ($("windowBtn")) $("windowBtn").onclick = () => doWrite("open_challenge_window", [String(id)], "Challenge window opened.");
+  if ($("challengeBtn")) $("challengeBtn").onclick = () => doWrite("submit_challenge", [String(id), $("challengeClaim").value.trim(), $("challengeUrl").value.trim()], "Challenge submitted.");
+  if ($("appealBtn")) $("appealBtn").onclick = () => doWrite("submit_appeal", [String(id), $("appealReason").value.trim(), $("appealUrl").value.trim()], "Appeal filed.");
+  if ($("finalizeBtn")) $("finalizeBtn").onclick = () => doWrite("finalize_entry", [String(id)], "Entry finalized.");
 }
 
 async function doCreate() {
   const body = $("nBody").value.trim();
+  const citation = $("nCitation").value.trim();
   if (!body) return toast("Write something first.", "err");
+  if (!citation) return toast("Add a primary citation URL.", "err");
   const btn = $("createBtn"); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> submitting';
-  try { await ensureWallet(); await write(CONTRACT, "submit_post", [body]); toast("Post submitted - pending moderation.", "ok"); closeDrawer(); await load(); }
+  try { await ensureWallet(); await write(CONTRACT, "create_entry", [body, "post", citation]); toast("Entry and citation submitted.", "ok"); closeDrawer(); await load(); }
   catch (e) { toast(fmtErr(e), "err"); btn.disabled = false; btn.innerHTML = "Submit post"; }
 }
 async function doModerate(id) {
   if (!confirm("Run AI moderation? Validators read the post against the code of conduct. Calls a real LLM.")) return;
   const btn = $("modBtn"); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> validators reading';
-  try { await ensureWallet(); toast("Validators reading against the code…", "", "moderate"); await write(CONTRACT, "moderate", [id]); toast("Moderated on-chain.", "ok"); closeDrawer(); await load(); }
+  try { await ensureWallet(); toast("Validators reading against the code…", "", "moderate"); await write(CONTRACT, "moderate_with_genlayer", [String(id)]); toast("Moderated on-chain.", "ok"); closeDrawer(); await load(); }
   catch (e) { toast(fmtErr(e), "err"); if (btn) { btn.disabled = false; btn.textContent = "Run AI moderation"; } }
+}
+
+async function doAddCitation(id) {
+  const url = $("citationUrl").value.trim();
+  const summary = $("citationSummary").value.trim();
+  if (!url || !summary) return toast("Citation URL and summary are required.", "err");
+  await doWrite("add_citation", [String(id), url, "primary", summary], "Citation added.");
+}
+
+async function doWrite(method, args, success) {
+  try {
+    await ensureWallet();
+    await write(CONTRACT, method, args);
+    toast(success, "ok");
+    closeDrawer();
+    await load();
+  } catch (e) { toast(fmtErr(e), "err"); }
 }
 
 $("heroPostBtn").onclick = openNew;
