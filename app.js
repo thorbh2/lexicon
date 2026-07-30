@@ -34,8 +34,10 @@ async function load() {
     coc = await read("get_code");
     $("cocText").textContent = coc && coc.trim() ? coc : "No code of conduct set yet.";
     const count = Number(await read("get_post_count"));
-    const out = [];
-    for (let i = 0; i < count; i++) out.push({ id: i, ...(await read("get_post", [i])) });
+    const out = await Promise.all(Array.from(
+      { length: count },
+      (_, i) => read("get_post", [i]).then((record) => ({ id: i, ...asJson(record) })),
+    ));
     posts = out; renderFeed();
     $("stTotal").textContent = count;
     $("stPub").textContent = out.filter((p) => Number(p.status) === PUBLISHED).length;
